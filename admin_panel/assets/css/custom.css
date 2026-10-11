@@ -224,8 +224,13 @@ body.admin-body {
 /* Alert banners */
 .admin-content .bg-green-100.border, .admin-content .bg-red-100.border { border-radius: 12px; font-size: .88rem; }
 
-/* Modals created with fixed overlays keep working above the sticky bar */
-.admin-content .fixed.inset-0 { z-index: 60; }
+/* Modals: only the modal ROOT sits above the sidebar/top bar. The backdrop and dialog
+   inside it keep their natural order, and the dialog is lifted above the backdrop. */
+.admin-content .fixed.inset-0.z-50,
+.admin-content .fixed.inset-0.overflow-y-auto,
+#leadModal { z-index: 60; }
+.admin-content .fixed.inset-0 .inline-block.bg-white,
+.admin-content .fixed.inset-0 .transform { position: relative; z-index: 1; }
 
 /* Pagination */
 .admin-content nav.inline-flex { box-shadow: none; gap: 4px; }

@@ -20,7 +20,7 @@
     <!-- Chart.js (for pages that need it) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Admin design system -->
-    <link rel="stylesheet" href="assets/css/custom.css?v=2">
+    <link rel="stylesheet" href="assets/css/custom.css?v=3">
 </head>
 <body class="admin-body">
 
