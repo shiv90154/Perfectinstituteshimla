@@ -205,10 +205,9 @@ $stmt = $conn->prepare("SELECT COALESCE(SUM(amount), 0) AS paid FROM payments WH
 $stmt->bind_param('s', $reg['registration_id']);
 $stmt->execute();
 $feePaid = (float)$stmt->get_result()->fetch_assoc()['paid'];
-$finalDisplay = (float)($reg['final_amount'] ?? 0);
-if ($finalDisplay <= 0) {
-    $finalDisplay = max(0, (float)($reg['total_amount'] ?? 0) - (float)($reg['discount_amount'] ?? 0));
-}
+// Always derive from total - discount (+ platform fee & GST for online payments) so it never goes stale
+$finalFees = (float)($reg['platform_fee'] ?? 0) + (float)($reg['gst_amount'] ?? 0);
+$finalDisplay = max(0, (float)($reg['total_amount'] ?? 0) - (float)($reg['discount_amount'] ?? 0)) + $finalFees;
 
 include 'includes/header.php';
 include 'includes/sidebar.php';
@@ -382,7 +381,7 @@ include 'includes/sidebar.php';
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Total Amount (₹)</label>
-                        <input type="number" step="0.01" name="total_amount" value="<?php echo (float)($reg['total_amount'] ?? 0); ?>" class="w-full px-3 py-2 border rounded-lg">
+                        <input type="number" step="0.01" name="total_amount" id="totalAmountInput" value="<?php echo (float)($reg['total_amount'] ?? 0); ?>" class="w-full px-3 py-2 border rounded-lg">
                     </div>
 
                     <!-- Read-only Financial Breakdown (auto) -->
@@ -405,7 +404,7 @@ include 'includes/sidebar.php';
                             <?php endif; ?>
                             <div class="flex justify-between font-semibold border-t border-gray-300 pt-1 mt-1">
                                 <dt class="text-gray-700">Final Amount (after discount)</dt>
-                                <dd class="text-indigo-700">₹<?php echo number_format($finalDisplay, 2); ?></dd>
+                                <dd class="text-indigo-700" id="finalAmountDisplay">₹<?php echo number_format($finalDisplay, 2); ?></dd>
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-gray-500">Payment Method</dt>
@@ -433,5 +432,21 @@ include 'includes/sidebar.php';
         </div>
     </form>
 </div>
+
+<script>
+// Live final amount = total - discount + platform fee & GST
+(function () {
+    var input = document.getElementById('totalAmountInput');
+    var out = document.getElementById('finalAmountDisplay');
+    if (!input || !out) return;
+    var discount = <?php echo json_encode((float)($reg['discount_amount'] ?? 0)); ?>;
+    var fees = <?php echo json_encode($finalFees); ?>;
+    input.addEventListener('input', function () {
+        var total = parseFloat(input.value) || 0;
+        var final = Math.max(0, total - Math.min(discount, total)) + fees;
+        out.textContent = '₹' + final.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    });
+})();
+</script>
 
 <?php include 'includes/footer.php'; ?>
