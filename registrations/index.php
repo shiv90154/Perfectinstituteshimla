@@ -106,9 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['main_form'])) {
             if ($coupon['discount_type'] == 'percentage') {
                 $discount = ($totalAmount * $coupon['discount_value']) / 100;
             } else {
-                $discount = $coupon['discount_value'];
+                $discount = (float)$coupon['discount_value'];
             }
             if ($discount > $totalAmount) $discount = $totalAmount;
+            $discount = round((float)$discount, 2);
         } else {
             $coupon_code = null;
             $discount = 0;
@@ -465,7 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['main_form'])) {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    msgDiv.innerHTML = '<span style="color:green;">Coupon applied! Discount: ₹' + data.discount.toFixed(2) + '</span>';
+                    msgDiv.innerHTML = '<span style="color:green;">Coupon applied! Discount: ₹' + Number(data.discount).toFixed(2) + '</span>';
                 } else {
                     msgDiv.innerHTML = '<span style="color:red;">' + data.message + '</span>';
                 }

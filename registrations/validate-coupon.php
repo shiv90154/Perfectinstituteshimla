@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db_connect.php';
+header('Content-Type: application/json');
 $db = (new Database())->getConnection();
 
 $code = $_GET['code'] ?? '';
@@ -31,9 +32,10 @@ if ($amount < $coupon['min_order_amount']) {
 if ($coupon['discount_type'] == 'percentage') {
     $discount = ($amount * $coupon['discount_value']) / 100;
 } else {
-    $discount = $coupon['discount_value'];
+    $discount = (float)$coupon['discount_value'];
 }
 if ($discount > $amount) $discount = $amount;
+$discount = round((float)$discount, 2);
 
 echo json_encode([
     'success' => true,
