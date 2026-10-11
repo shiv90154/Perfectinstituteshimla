@@ -97,7 +97,7 @@ if (isset($_GET['export']) && $_GET['export'] == 'excel') {
         fputcsv($output, [
             $row['id'],
             $row['registration_id'] ?? '',
-            $row['payer_name'] ?: $row['full_name'] ?? '',
+            trim((string)($row['payer_name'] ?? '')) !== '' ? $row['payer_name'] : ($row['full_name'] ?? ''),
             $row['email'] ?? '',
             number_format($row['amount'], 2),
             number_format(($row['platform_fee'] ?? 0) + ($row['gst_amount'] ?? 0), 2),
@@ -612,7 +612,7 @@ include 'includes/sidebar.php';
                     <tr data-id="<?= htmlspecialchars($p['id'] ?? '') ?>" data-reg-id="<?= htmlspecialchars($p['registration_id'] ?? '') ?>">
                         <td class="px-4 py-3 text-sm"><?= htmlspecialchars($p['id'] ?? '') ?></td>
                         <td class="px-4 py-3 text-sm font-mono"><?= htmlspecialchars($p['registration_id'] ?? '') ?></td>
-                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars($p['payer_name'] ?? $p['full_name'] ?? '') ?></td>
+                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars(trim((string)($p['payer_name'] ?? '')) !== '' ? $p['payer_name'] : (string)($p['full_name'] ?? '—')) ?></td>
                         <td class="px-4 py-3 text-sm">
                             <?php if (($p['reg_count'] ?? 0) > 1): ?>
                                 <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Yes (<?= htmlspecialchars($p['reg_count'] ?? 0) ?>)</span>
