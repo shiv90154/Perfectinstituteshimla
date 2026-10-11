@@ -163,11 +163,15 @@ $sql = "
     WHERE r.is_deleted = 0
     ORDER BY LOWER(TRIM(r.email)), r.created_at DESC
 ";
-$result = false;
+$rejoinedRows = [];
 $listError = '';
 try {
     $result = $conn->query($sql);
-    if (!$result) { $listError = $conn->error; }
+    if ($result) {
+        while ($r = $result->fetch_assoc()) { $rejoinedRows[] = $r; }
+    } else {
+        $listError = $conn->error;
+    }
 } catch (Throwable $e) {
     $listError = $e->getMessage();
 }
@@ -310,7 +314,7 @@ include 'includes/sidebar.php';
     </div>
 
     <!-- Rejoined Students Table -->
-    <h3 class="text-lg font-semibold mb-3 text-gray-800">Rejoined Students List</h3>
+    <h3 class="text-lg font-semibold mb-3 text-gray-800">Rejoined Students List <span class="text-sm font-normal text-gray-500">(<?= count($rejoinedRows) ?> records)</span></h3>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-100">
@@ -329,32 +333,32 @@ include 'includes/sidebar.php';
                     <tr>
                         <td colspan="7" class="px-4 py-8 text-center text-red-600">Could not load list: <?= htmlspecialchars($listError) ?></td>
                     </tr>
-                <?php elseif ($result && $result->num_rows > 0): ?>
-                    <?php while ($row = $result->fetch_assoc()): ?>
+                <?php elseif (empty($rejoinedRows)): ?>
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">No rejoined students found.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($rejoinedRows as $row): ?>
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm font-mono"><?= htmlspecialchars($row['registration_id']) ?></td>
-                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars($row['full_name']) ?></td>
-                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars($row['contact']) ?></td>
-                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars($row['email']) ?></td>
-                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars($row['course_name']) ?></td>
-                        <td class="px-4 py-3 text-sm"><?= date('d M Y', strtotime($row['created_at'])) ?></td>
+                        <td class="px-4 py-3 text-sm font-mono"><?= htmlspecialchars((string)($row['registration_id'] ?? '')) ?></td>
+                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars((string)($row['full_name'] ?? '')) ?></td>
+                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars((string)($row['contact'] ?? '')) ?></td>
+                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars((string)($row['email'] ?? '')) ?></td>
+                        <td class="px-4 py-3 text-sm"><?= htmlspecialchars((string)($row['course_name'] ?? '')) ?></td>
+                        <td class="px-4 py-3 text-sm"><?= !empty($row['created_at']) ? date('d M Y', strtotime($row['created_at'])) : '—' ?></td>
                         <td class="px-4 py-3 text-sm space-x-2">
-                            <a href="rejoined_students.php?edit=<?= urlencode($row['registration_id']) ?>" 
+                            <a href="rejoined_students.php?edit=<?= urlencode((string)($row['registration_id'] ?? '')) ?>"
                                class="text-yellow-600 hover:text-yellow-800" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="rejoined_students.php?delete=<?= urlencode($row['registration_id']) ?>" 
+                            <a href="rejoined_students.php?delete=<?= urlencode((string)($row['registration_id'] ?? '')) ?>"
                                onclick="return confirm('Are you sure you want to delete this record?')"
                                class="text-red-600 hover:text-red-800" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>
                     </tr>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">No rejoined students found.</td>
-                    </tr>
+                    <?php endforeach; ?>
                 <?php endif; ?>
             </tbody>
         </table>
