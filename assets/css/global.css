@@ -1,0 +1,62 @@
+/* =========================================
+   GLOBAL RESET
+========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* =========================================
+   HTML + BODY
+========================================= */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    /* HEADER OFFSET – DO NOT TOUCH */
+    background-color: #ffffff;
+    color: #1e293b;
+    line-height: 1.6;
+}
+
+/* =========================================
+   SCROLLBAR (DESKTOP ONLY)
+========================================= */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e63946;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #c92e3a;
+}
+
+/* =========================================
+   UTILITY CLASSES
+========================================= */
+.text-center {
+    text-align: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================================
+   MAIN CONTENT SAFETY
+========================================= */
+main {
+    display: block;
+    width: 100%;
+}

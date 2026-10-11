@@ -1,0 +1,141 @@
+RewriteEngine On
+
+###############################################
+# 1. FORCE HTTPS + REMOVE WWW
+###############################################
+RewriteCond %{HTTPS} off [OR]
+RewriteCond %{HTTP_HOST} ^www\.perfectinstitute\.in$ [NC]
+RewriteRule ^ https://perfectinstitute.in%{REQUEST_URI} [R=301,L]
+
+
+###############################################
+# 2. BLOG DETAILS SLUG
+# /blog/testing → blog-details.php?slug=testing
+###############################################
+RewriteRule ^blog/([a-zA-Z0-9-_]+)/?$ blog-details.php?slug=$1 [QSA,L]
+
+
+###############################################
+# 3. COURSE DETAIL PAGE
+# /course/1 → index.php?page=view_course&id=1
+###############################################
+RewriteRule ^course/([0-9]+)/?$ index.php?page=view_course&id=$1 [QSA,L]
+
+
+###############################################
+# 4. LEGAL PAGES
+###############################################
+RewriteRule ^privacy-policy/?$ privacy-policy.php [L,QSA]
+RewriteRule ^terms-and-conditions/?$ terms-and-conditions.php [L,QSA]
+RewriteRule ^refund-policy/?$ refund-policy.php [L,QSA]
+RewriteRule ^cancellation-policy/?$ cancellation-policy.php [L,QSA]
+
+
+###############################################
+# 5. REMOVE .PHP (FRONTEND ONLY)
+###############################################
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+RewriteCond %{REQUEST_URI} !^/admin/ [NC]
+RewriteCond %{REQUEST_URI} !^/admin_panel/ [NC]
+RewriteCond %{REQUEST_URI} !^/registrations/ [NC]
+RewriteCond %{REQUEST_URI} !^/pages/ [NC]
+RewriteCond %{REQUEST_URI} !^/blog-details\.php$ [NC]
+RewriteRule ^(.+)\.php$ /$1 [R=301,L]
+
+
+###############################################
+# 6. REMOVE .HTML
+###############################################
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+RewriteCond %{REQUEST_URI} !^/admin/ [NC]
+RewriteCond %{REQUEST_URI} !^/admin_panel/ [NC]
+RewriteCond %{REQUEST_URI} !^/registrations/ [NC]
+RewriteCond %{REQUEST_URI} !^/pages/ [NC]
+RewriteRule ^(.+)\.html$ /$1 [R=301,L]
+
+
+###############################################
+# 7. FRONTEND ROUTER
+###############################################
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/admin/ [NC]
+RewriteCond %{REQUEST_URI} !^/admin_panel/ [NC]
+RewriteCond %{REQUEST_URI} !^/registrations/ [NC]
+RewriteCond %{REQUEST_URI} !^/pages/ [NC]
+RewriteRule ^(.+)$ index.php?page=$1 [QSA,L]
+
+
+###############################################
+# 8. DEFAULT FILE
+###############################################
+DirectoryIndex index.php
+
+
+###############################################
+# 9. BASIC SECURITY
+###############################################
+Options -Indexes
+
+<FilesMatch "\.(env|log|sql|bak|ini|conf|pem|key)$">
+    Require all denied
+</FilesMatch>
+
+<Files ".htaccess">
+    Require all denied
+</Files>
+
+
+###############################################
+# 10. SECURITY HEADERS
+###############################################
+<IfModule mod_headers.c>
+
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+</IfModule>
+
+
+###############################################
+# 11. GZIP COMPRESSION
+###############################################
+<IfModule mod_deflate.c>
+
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE application/json
+
+</IfModule>
+
+
+###############################################
+# 12. BROWSER CACHE
+###############################################
+<IfModule mod_expires.c>
+
+ExpiresActive On
+
+ExpiresByType image/jpg "access plus 1 year"
+ExpiresByType image/jpeg "access plus 1 year"
+ExpiresByType image/png "access plus 1 year"
+ExpiresByType image/webp "access plus 1 year"
+ExpiresByType image/gif "access plus 1 year"
+
+ExpiresByType text/css "access plus 1 month"
+ExpiresByType application/javascript "access plus 1 month"
+
+ExpiresByType font/woff "access plus 1 year"
+ExpiresByType font/woff2 "access plus 1 year"
+
+</IfModule>
+

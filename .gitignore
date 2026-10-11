@@ -1,0 +1,10 @@
+# Secrets / credentials - never commit
+config/
+includes/config.php
+admin_panel/includes/config.php
+.env
+
+# Personal data and runtime files
+*.sql
+uploads/
+logs/
