@@ -168,12 +168,14 @@ if (isset($_POST['action']) && in_array($_POST['action'], ['approve', 'reject', 
 
     $success = false;
     $message = '';
+    $affected = 0;
 
     if ($action == 'approve') {
         // When approving, also set payment_status to 'paid' if final_amount > 0 (assuming full payment)
         $stmt = $conn->prepare("UPDATE registrations SET status='approved' WHERE id=?");
         $stmt->bind_param('i', $id);
         $success = $stmt->execute();
+        $affected = $stmt->affected_rows;
         if ($success) {
             syncRegistrationPaymentStatus($conn, $student['registration_id']);
         }
@@ -182,6 +184,7 @@ if (isset($_POST['action']) && in_array($_POST['action'], ['approve', 'reject', 
         $stmt = $conn->prepare("UPDATE registrations SET status='rejected' WHERE id=?");
         $stmt->bind_param('i', $id);
         $success = $stmt->execute();
+        $affected = $stmt->affected_rows;
         $message = "Registration rejected.";
     } elseif ($action == 'delete') {
         $check = $conn->query("SHOW COLUMNS FROM registrations LIKE 'is_deleted'");
@@ -201,10 +204,11 @@ if (isset($_POST['action']) && in_array($_POST['action'], ['approve', 'reject', 
         }
         $stmt->bind_param('i', $id);
         $success = $stmt->execute();
+        $affected = $stmt->affected_rows;
         $message = "Registration deleted.";
     }
 
-    if ($success && $conn->affected_rows > 0) {
+    if ($success && $affected > 0) {
         if ($action == 'approve' || $action == 'reject') {
             $mailerPath = __DIR__ . '/../mailer/mailer.php';
             if (file_exists($mailerPath)) {
@@ -337,10 +341,6 @@ include 'includes/sidebar.php';
         overflow: hidden;
         text-overflow: ellipsis;
         cursor: help;
-    }
-    .admin-note-cell:hover {
-        white-space: normal;
-        word-break: break-word;
     }
 </style>
 
