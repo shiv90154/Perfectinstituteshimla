@@ -161,7 +161,7 @@ $sql = "
         HAVING COUNT(*) > 1
     ) d ON d.email_key = LOWER(TRIM(r.email))
     WHERE r.is_deleted = 0
-    ORDER BY LOWER(TRIM(r.email)), r.created_at DESC
+    ORDER BY r.created_at DESC, r.id DESC
 ";
 $rejoinedRows = [];
 $listError = '';
