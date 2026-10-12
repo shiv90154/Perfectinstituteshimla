@@ -66,8 +66,8 @@ if (isset($_POST['action'])) {
         $role_id = (int)($_POST['role_id'] ?? 0);
         $status = $_POST['status'] ?? 'active';
 
-        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => 'A valid email address is required']);
             exit;
         }
         if (empty($name) || empty($username) || empty($password) || $role_id <= 0) {
@@ -81,6 +81,14 @@ if (isset($_POST['action'])) {
         $checkStmt->execute();
         if ($checkStmt->get_result()->num_rows > 0) {
             echo json_encode(['success' => false, 'message' => 'Username already exists']);
+            exit;
+        }
+
+        $emailCheck = $conn->prepare("SELECT id FROM admins WHERE email = ?");
+        $emailCheck->bind_param('s', $email);
+        $emailCheck->execute();
+        if ($emailCheck->get_result()->num_rows > 0) {
+            echo json_encode(['success' => false, 'message' => 'Email already used by another admin']);
             exit;
         }
 
@@ -106,8 +114,8 @@ if (isset($_POST['action'])) {
         $role_id = (int)($_POST['role_id'] ?? 0);
         $status = $_POST['status'] ?? 'active';
 
-        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => 'A valid email address is required']);
             exit;
         }
         if ($id <= 0 || empty($name) || empty($username) || $role_id <= 0) {
@@ -121,6 +129,14 @@ if (isset($_POST['action'])) {
         $checkStmt->execute();
         if ($checkStmt->get_result()->num_rows > 0) {
             echo json_encode(['success' => false, 'message' => 'Username already exists']);
+            exit;
+        }
+
+        $emailCheck = $conn->prepare("SELECT id FROM admins WHERE email = ? AND id != ?");
+        $emailCheck->bind_param('si', $email, $id);
+        $emailCheck->execute();
+        if ($emailCheck->get_result()->num_rows > 0) {
+            echo json_encode(['success' => false, 'message' => 'Email already used by another admin']);
             exit;
         }
 
@@ -649,8 +665,8 @@ include 'includes/sidebar.php';
             <input type="text" id="name" required>
             <label>Username</label>
             <input type="text" id="username" required>
-            <label>Email (for password reset)</label>
-            <input type="email" id="email" placeholder="admin@example.com">
+            <label>Email * (used for password reset)</label>
+            <input type="email" id="email" required placeholder="admin@example.com">
             <label>Password</label>
             <input type="password" id="password">
             <p id="passwordHint" style="font-size:0.8rem; color:#6c757d; margin-top:-10px; margin-bottom:10px; display:none;">Leave blank to keep current password (when editing)</p>

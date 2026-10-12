@@ -63,6 +63,7 @@ function sendResetEmail(string $email, string $name, string $link): bool {
          . '<p>Hello <strong>' . htmlspecialchars($name) . '</strong>,</p>'
          . '<p>Click the button below to set a new password. This link is valid for ' . RESET_TOKEN_TTL_MINUTES . ' minutes and can be used once.</p>'
          . '<p><a href="' . htmlspecialchars($link) . '" style="background:#1e3a8a;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;display:inline-block">Reset Password</a></p>'
+         . '<p style="font-size:13px;color:#666">Button not working? Copy this link into your browser:<br><a href="' . htmlspecialchars($link) . '" style="word-break:break-all;color:#1e3a8a">' . htmlspecialchars($link) . '</a></p>'
          . '<p style="font-size:13px;color:#666">If you did not request this, you can ignore this email.</p></div>';
     return sendCustomEmail($email, $name, 'Reset your admin password - Perfect Institute', $msg);
 }

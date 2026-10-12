@@ -11,6 +11,11 @@
 <!-- Date pickers: show DD-MM-YYYY, submit YYYY-MM-DD -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<style>
+    .flatpickr-wrapper { display: block; width: 100%; }
+    .flatpickr-wrapper .flatpickr-calendar { z-index: 100000; }
+    input.flatpickr-input.form-control, .flatpickr-wrapper > input[type="text"] { width: 100%; }
+</style>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (!window.flatpickr) return;
@@ -21,8 +26,17 @@
                 altInput: true,
                 altFormat: 'd-m-Y',
                 allowInput: true,
-                disableMobile: true
+                disableMobile: true,
+                // Render the calendar inside a wrapper next to the input so it positions
+                // correctly (and above the dimmed backdrop) inside modals.
+                static: true
             });
+            // form.reset() doesn't touch the visible alt input; resync it afterwards
+            if (el.form) {
+                el.form.addEventListener('reset', function () {
+                    setTimeout(function () { fp.setDate(el.defaultValue || null, false); }, 0);
+                });
+            }
             // Keep the visible field in sync when scripts set .value directly (edit modals)
             Object.defineProperty(el, 'value', {
                 get: function () { return proto.get.call(el); },
