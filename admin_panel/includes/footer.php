@@ -38,9 +38,16 @@
                 });
             }
             // Keep the visible field in sync when scripts set .value directly (edit modals)
+            // (guarded: flatpickr itself assigns el.value inside setDate, which would recurse forever)
+            var syncing = false;
             Object.defineProperty(el, 'value', {
                 get: function () { return proto.get.call(el); },
-                set: function (v) { proto.set.call(el, v); fp.setDate(v || null, false); }
+                set: function (v) {
+                    proto.set.call(el, v);
+                    if (syncing) return;
+                    syncing = true;
+                    try { fp.setDate(v || null, false); } finally { syncing = false; }
+                }
             });
         });
     });
