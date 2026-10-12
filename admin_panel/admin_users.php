@@ -3,6 +3,7 @@
 $pageTitle = 'Manage Admins';
 include 'includes/config.php';
 include 'includes/functions.php';
+require_once 'includes/password_reset.php';
 
 if (!isset($_SESSION['admin_id'])) {
     header("Location: login.php");
@@ -16,6 +17,8 @@ if (!hasPermission($conn, $_SESSION['admin_id'], 'manage_admins')) {
     header("Location: unauthorized.php");
     exit;
 }
+
+if ($conn) { ensureResetSchema($conn); }
 
 // CSRF token generation
 if (empty($_SESSION['csrf_token'])) {
@@ -42,7 +45,7 @@ if (isset($_POST['action'])) {
     // Get admin data for editing
     if ($action === 'get' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
-        $stmt = $conn->prepare("SELECT id, name, username, role_id, status FROM admins WHERE id = ?");
+        $stmt = $conn->prepare("SELECT id, name, username, email, role_id, status FROM admins WHERE id = ?");
         $stmt->bind_param('i', $id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -59,9 +62,14 @@ if (isset($_POST['action'])) {
         $name = trim($_POST['name'] ?? '');
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
+        $email = trim($_POST['email'] ?? '');
         $role_id = (int)($_POST['role_id'] ?? 0);
         $status = $_POST['status'] ?? 'active';
 
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+            exit;
+        }
         if (empty($name) || empty($username) || empty($password) || $role_id <= 0) {
             echo json_encode(['success' => false, 'message' => 'Name, username, password and role are required']);
             exit;
@@ -77,8 +85,8 @@ if (isset($_POST['action'])) {
         }
 
         $hashed = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO admins (name, username, password, role_id, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param('sssis', $name, $username, $hashed, $role_id, $status);
+        $stmt = $conn->prepare("INSERT INTO admins (name, username, email, password, role_id, status, created_at) VALUES (?, ?, NULLIF(?, ''), ?, ?, ?, NOW())");
+        $stmt->bind_param('ssssis', $name, $username, $email, $hashed, $role_id, $status);
 
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Admin added successfully']);
@@ -94,9 +102,14 @@ if (isset($_POST['action'])) {
         $name = trim($_POST['name'] ?? '');
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
+        $email = trim($_POST['email'] ?? '');
         $role_id = (int)($_POST['role_id'] ?? 0);
         $status = $_POST['status'] ?? 'active';
 
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+            exit;
+        }
         if ($id <= 0 || empty($name) || empty($username) || $role_id <= 0) {
             echo json_encode(['success' => false, 'message' => 'Invalid data']);
             exit;
@@ -113,11 +126,11 @@ if (isset($_POST['action'])) {
 
         if (!empty($password)) {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("UPDATE admins SET name = ?, username = ?, password = ?, role_id = ?, status = ? WHERE id = ?");
-            $stmt->bind_param('sssisi', $name, $username, $hashed, $role_id, $status, $id);
+            $stmt = $conn->prepare("UPDATE admins SET name = ?, username = ?, email = NULLIF(?, ''), password = ?, role_id = ?, status = ? WHERE id = ?");
+            $stmt->bind_param('ssssisi', $name, $username, $email, $hashed, $role_id, $status, $id);
         } else {
-            $stmt = $conn->prepare("UPDATE admins SET name = ?, username = ?, role_id = ?, status = ? WHERE id = ?");
-            $stmt->bind_param('ssisi', $name, $username, $role_id, $status, $id);
+            $stmt = $conn->prepare("UPDATE admins SET name = ?, username = ?, email = NULLIF(?, ''), role_id = ?, status = ? WHERE id = ?");
+            $stmt->bind_param('sssisi', $name, $username, $email, $role_id, $status, $id);
         }
 
         if ($stmt->execute()) {
@@ -125,6 +138,31 @@ if (isset($_POST['action'])) {
         } else {
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->error]);
         }
+        exit;
+    }
+
+    // Generate password reset link (emailed if the admin has an email, always returned for manual sharing)
+    if ($action === 'reset_link') {
+        $id = (int)($_POST['id'] ?? 0);
+        $stmt = $conn->prepare("SELECT id, name, email FROM admins WHERE id = ?");
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $target = $stmt->get_result()->fetch_assoc();
+        if (!$target) {
+            echo json_encode(['success' => false, 'message' => 'Admin not found']);
+            exit;
+        }
+        $link = createResetLink($conn, (int)$target['id']);
+        $emailed = false;
+        if (filter_var($target['email'], FILTER_VALIDATE_EMAIL)) {
+            $emailed = sendResetEmail($target['email'], $target['name'], $link);
+        }
+        echo json_encode([
+            'success' => true,
+            'emailed' => $emailed,
+            'link' => $link,
+            'message' => $emailed ? 'Reset link emailed to ' . $target['email'] : 'Reset link generated'
+        ]);
         exit;
     }
 
@@ -392,6 +430,8 @@ include 'includes/sidebar.php';
     .action-btn.edit:hover {
         background: #e9ecff;
     }
+    .action-btn.reset { color: #06b6d4; }
+    .action-btn.reset:hover { background: #e0f7fb; }
     .action-btn.toggle {
         color: #ffb703;
     }
@@ -563,6 +603,7 @@ include 'includes/sidebar.php';
                         <td><?= $admin['last_login'] ? date('d M Y H:i', strtotime($admin['last_login'])) : 'Never' ?></td>
                         <td>
                             <button onclick="openModal('edit', <?= $admin['id'] ?>)" class="action-btn edit" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button onclick="sendResetLink(<?= $admin['id'] ?>)" class="action-btn reset" title="Reset Password"><i class="fas fa-key"></i></button>
                             <button onclick="toggleStatus(<?= $admin['id'] ?>, '<?= $admin['status'] ?>')" class="action-btn toggle" title="<?= $admin['status'] == 'active' ? 'Block' : 'Activate' ?>">
                                 <i class="fas <?= $admin['status'] == 'active' ? 'fa-lock' : 'fa-unlock-alt' ?>"></i>
                             </button>
@@ -608,6 +649,8 @@ include 'includes/sidebar.php';
             <input type="text" id="name" required>
             <label>Username</label>
             <input type="text" id="username" required>
+            <label>Email (for password reset)</label>
+            <input type="email" id="email" placeholder="admin@example.com">
             <label>Password</label>
             <input type="password" id="password">
             <p id="passwordHint" style="font-size:0.8rem; color:#6c757d; margin-top:-10px; margin-bottom:10px; display:none;">Leave blank to keep current password (when editing)</p>
@@ -650,6 +693,7 @@ function openModal(action, id = null) {
     document.getElementById('name').value = '';
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
+    document.getElementById('email').value = '';
     document.getElementById('role_id').value = '1';
     document.getElementById('status').value = 'active';
 
@@ -672,6 +716,7 @@ function openModal(action, id = null) {
                 document.getElementById('adminId').value = data.admin.id;
                 document.getElementById('name').value = data.admin.name;
                 document.getElementById('username').value = data.admin.username;
+                document.getElementById('email').value = data.admin.email || '';
                 document.getElementById('role_id').value = data.admin.role_id;
                 document.getElementById('status').value = data.admin.status;
             } else {
@@ -695,6 +740,7 @@ function submitForm() {
     params.append('name', document.getElementById('name').value);
     params.append('username', document.getElementById('username').value);
     params.append('password', document.getElementById('password').value);
+    params.append('email', document.getElementById('email').value);
     params.append('role_id', document.getElementById('role_id').value);
     params.append('status', document.getElementById('status').value);
 
@@ -730,6 +776,24 @@ function toggleStatus(id, currentStatus) {
             setTimeout(() => location.reload(), 1000);
         } else {
             showMessage(data.message, 'error');
+        }
+    });
+}
+
+function sendResetLink(id) {
+    if (!confirm('Generate a password reset link for this admin? (Emailed if they have an email set.)')) return;
+    fetch('', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ action: 'reset_link', id: id, csrf_token: csrfToken })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success) { showMessage(data.message, 'error'); return; }
+        showMessage(data.message, 'success');
+        if (!data.emailed) {
+            // No email on file (or mail failed): show link so it can be shared manually
+            window.prompt('Share this one-time reset link with the admin (valid 30 minutes):', data.link);
         }
     });
 }

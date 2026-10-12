@@ -144,133 +144,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login · Perfect Institute</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(145deg, #f6f8fc 0%, #e9eef5 100%);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .hero {
+            background:
+                radial-gradient(circle at 20% 20%, rgba(96,165,250,.35), transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(139,92,246,.35), transparent 45%),
+                linear-gradient(145deg, #0f1f4d 0%, #1e3a8a 55%, #1d4ed8 100%);
         }
-        .login-card {
-            background: rgba(255,255,255,0.98);
-            backdrop-filter: blur(4px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.02);
+        .hero::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+            background-size: 22px 22px;
         }
         .input-field {
-            transition: all 0.2s ease;
-            background-color: #f9fafc;
-            border: 1px solid #e2e8f0;
+            background: #f8fafc; border: 1.5px solid #e2e8f0; transition: all .2s ease;
         }
         .input-field:focus {
-            background-color: #ffffff;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+            background: #fff; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.12); outline: none;
         }
         .btn-primary {
-            background: linear-gradient(145deg, #1e3a8a, #1e40af);
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(30,58,138,0.2), 0 2px 4px -1px rgba(30,58,138,0.1);
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            box-shadow: 0 10px 20px -8px rgba(37,99,235,.6);
+            transition: all .2s ease;
         }
-        .btn-primary:hover {
-            background: linear-gradient(145deg, #1e3a8a, #2563eb);
-            transform: translateY(-1px);
-            box-shadow: 0 10px 15px -3px rgba(30,58,138,0.3);
-        }
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-        .brand-icon {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            box-shadow: 0 10px 15px -3px rgba(30,58,138,0.2);
-        }
-        .error-alert {
-            background-color: #fef2f2;
-            border-left: 4px solid #b91c1c;
-            color: #7f1d1d;
-        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 24px -8px rgba(37,99,235,.7); }
+        .btn-primary:active { transform: translateY(0); }
+        .error-alert { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+        .fade-up { animation: fadeUp .5s ease both; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-md">
-        <!-- Brand Header -->
-        <div class="text-center mb-8">
-            <div class="brand-icon inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4">
-                <i class="fas fa-graduation-cap text-2xl text-white"></i>
+<body class="min-h-screen bg-slate-50">
+<div class="min-h-screen grid lg:grid-cols-2">
+
+    <!-- Left: branding panel (desktop) -->
+    <div class="hero relative hidden lg:flex flex-col justify-between p-12 text-white overflow-hidden">
+        <div class="relative z-10 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
+                <i class="fas fa-graduation-cap text-lg"></i>
             </div>
-            <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Perfect Institute</h1>
-            <p class="text-gray-500 mt-1 text-sm font-medium">Admin Portal · Secure Access</p>
+            <span class="text-lg font-semibold tracking-tight">Perfect Institute</span>
         </div>
 
-        <!-- Login Card -->
-        <div class="login-card rounded-2xl p-8">
+        <div class="relative z-10 max-w-md">
+            <h2 class="text-4xl font-extrabold leading-tight tracking-tight">Manage your institute, all in one place.</h2>
+            <p class="mt-4 text-blue-100/90 leading-relaxed">Registrations, payments, leads, courses and finance &mdash; a single secure dashboard for your team.</p>
+            <ul class="mt-8 space-y-3 text-sm text-blue-50">
+                <li class="flex items-center gap-3"><i class="fas fa-clipboard-list w-5 text-blue-200"></i> Student registrations &amp; admissions</li>
+                <li class="flex items-center gap-3"><i class="fas fa-credit-card w-5 text-blue-200"></i> Payments &amp; finance tracking</li>
+                <li class="flex items-center gap-3"><i class="fas fa-users w-5 text-blue-200"></i> Leads &amp; inquiries follow-up</li>
+            </ul>
+        </div>
+
+        <p class="relative z-10 text-xs text-blue-200/80">&copy; <?php echo date('Y'); ?> Perfect Institute. All rights reserved.</p>
+    </div>
+
+    <!-- Right: login form -->
+    <div class="flex items-center justify-center p-6 sm:p-10">
+        <div class="w-full max-w-md fade-up">
+            <!-- Mobile brand -->
+            <div class="lg:hidden text-center mb-8">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-3 text-white" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)">
+                    <i class="fas fa-graduation-cap text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">Perfect Institute</h1>
+            </div>
+
+            <div class="mb-8">
+                <h1 class="hidden lg:block text-3xl font-extrabold text-slate-900 tracking-tight">Welcome back</h1>
+                <p class="text-slate-500 mt-2 text-sm">Sign in to the admin portal to continue.</p>
+            </div>
+
             <?php if ($error): ?>
-                <div class="error-alert flex items-start p-4 rounded-lg mb-6 text-sm" role="alert">
+                <div class="error-alert flex items-start p-4 rounded-xl mb-6 text-sm" role="alert">
                     <i class="fas fa-exclamation-circle mr-3 mt-0.5 flex-shrink-0"></i>
                     <span><?php echo htmlspecialchars($error); ?></span>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" class="space-y-6">
+            <form method="POST" class="space-y-5">
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-                <!-- Username Field -->
                 <div>
-                    <label for="username" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        <i class="fas fa-user mr-2 text-blue-600"></i>Username
-                    </label>
-                    <input type="text" id="username" name="username" required
-                           value="<?php echo htmlspecialchars($username); ?>"
-                           class="input-field w-full px-4 py-3 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none"
-                           placeholder="Enter your username">
+                    <label for="username" class="block text-sm font-semibold text-slate-700 mb-1.5">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="username" name="username" required autocomplete="username" autofocus
+                               value="<?php echo htmlspecialchars($username); ?>"
+                               class="input-field w-full pl-11 pr-4 py-3 rounded-xl text-slate-800 placeholder-slate-400"
+                               placeholder="Enter your username">
+                    </div>
                 </div>
 
-                <!-- Password Field with Show/Hide -->
                 <div>
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">
-                        <i class="fas fa-lock mr-2 text-blue-600"></i>Password
-                    </label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
+                        <a href="forgot_password.php" class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline">Forgot password?</a>
+                    </div>
                     <div class="relative">
-                        <input type="password" id="password" name="password" required
-                               class="input-field w-full px-4 py-3 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none pr-12"
-                               placeholder="••••••••">
-                        <button type="button" onclick="togglePassword()"
-                                class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-blue-600 transition">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="password" id="password" name="password" required autocomplete="current-password"
+                               class="input-field w-full pl-11 pr-12 py-3 rounded-xl text-slate-800 placeholder-slate-400"
+                               placeholder="Enter your password">
+                        <button type="button" onclick="togglePassword()" aria-label="Show or hide password"
+                                class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition">
                             <i class="fas fa-eye" id="toggleIcon"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Submit Button -->
                 <button type="submit"
-                        class="btn-primary w-full text-white py-3.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 font-semibold text-base shadow-lg">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                        class="btn-primary w-full text-white py-3.5 px-4 rounded-xl font-semibold text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600">
+                    Sign In <i class="fas fa-arrow-right ml-2 text-sm"></i>
                 </button>
             </form>
 
-            <!-- Footer -->
-            <p class="text-xs text-gray-400 text-center mt-8">
-                &copy; <?php echo date('Y'); ?> Perfect Institute. All rights reserved.
+            <p class="mt-8 text-center text-xs text-slate-400">
+                <i class="fas fa-shield-halved mr-1"></i> Secure admin access &middot; Authorized personnel only
             </p>
         </div>
     </div>
+</div>
 
-    <!-- JavaScript for Password Toggle -->
-    <script>
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const icon = document.getElementById('toggleIcon');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-    </script>
+<script>
+    function togglePassword() {
+        const input = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        icon.classList.toggle('fa-eye', !show);
+        icon.classList.toggle('fa-eye-slash', show);
+    }
+</script>
 </body>
 </html>
